@@ -111,5 +111,3 @@ def update_post(id: int, post: Post):
     
     return {'data': updated_post}
 
-def test():
-    print("testing git wtf")
