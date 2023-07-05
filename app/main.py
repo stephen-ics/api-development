@@ -3,14 +3,24 @@ from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+import psycopg
 
-app = FastAPI()
+
+app = FastAPI(debug=True)
 
 class Post(BaseModel):
     title: str
     content: str
     published: bool = True #default value
     rating: Optional[int] = None
+
+try:
+    conn = psycopg.connect("dbname=apis user=postgres password=password123")
+    cursor = conn.cursor()
+    print('Connected to database!')
+except Exception as error:
+    print('Connecting to database failed')
+    print('Error', error)
 
 my_posts = [{'title': 'title of post 1', 'content': 'content of post 1', 'id': 1}, {'title': 'favourite foods', 'content': 'I like pizza', 'id':2}]
 
@@ -31,51 +41,73 @@ def root():
 
 @app.get('/posts')
 def get_posts():
-    return {"data" : my_posts}
+    cursor.execute("""
+        SELECT *
+        FROM posts
+    """)
+    posts = cursor.fetchall()
+    print(posts)
+    return {'data': posts}  
 
 @app.post('/posts', status_code=201)
 def create_posts(post: Post): # Store all data in body as python dictionary named payLoad
-    post_dict = post.dict()
-    post_dict['id'] = randrange(0, 100000)
-    my_posts.append(post_dict)
-    return {'data': post_dict}  
+    cursor.execute("""
+        INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
+        RETURNING * 
+    """, (post.title, post.content, post.published)) # %s Represents variable
+    
+    new_post = cursor.fetchone()
+    conn.commit()
 
-@app.get('/posts/latest') # Move it up because {variable} matches latest but latest will never match an id
-def get_latest_post():
-    post = my_posts[len(my_posts)-1]
-    return {'detail': post}
+    return {'data': new_post}  
 
 @app.get('/posts/{id}') 
-def  get_post(id: int, response: Response): # automatically convert to integer if possible
-    post = find_post(id) # IDs are returned as a string, needs to be converted to int
-    if not post: # If post = none/null
-        raise HTTPException(status_code=404, 
-                            detail=f'post with id: {id} was not found')
-    return {'post_detail': post}
+def  get_post(id: int): # automatically convert to integer if possible
+    cursor.execute("""
+        SELECT * 
+        FROM posts
+        WHERE posts.id = %s
+    """, (id,))
+
+    one_post = cursor.fetchone()
+
+    if one_post is None:
+        raise HTTPException(status_code=404, detail=f'post with id: {id} was not found')
+    return {'post_detail': one_post}
 
 @app.delete('/posts/{id}', status_code=204)
 def delete_post(id: int):
-    index = find_index_post(id)
+    cursor.execute("""
+        DELETE
+        FROM posts
+        WHERE posts.id = %s
+        RETURNING *
+    """, (id,))
 
-    if index == None:
+    deleted_post = cursor.fetchone()
+    conn.commit()
+
+    if deleted_post is None:
         raise HTTPException(status_code=404, 
                             detail=f"post with id: {id} does not exist")
     
-    my_posts.pop(index)
     return Response(status_code=204)
 
 @app.put('/posts/{id}')
 def update_post(id: int, post: Post):
-    index = find_index_post(id)
+    cursor.execute("""
+        UPDATE posts
+        SET title = %s, content = %s, published = %s
+        WHERE id = %s
+        RETURNING *
+    """, (post.title, post.content, post.published, id))
 
-    if index == None:
+    updated_post = cursor.fetchone()
+    conn.commit()
+
+    if updated_post is None:
         raise HTTPException(status_code=404,
                             detail=f'post with id: {id} does not exist')
-    post_dict = post.dict()
-    post_dict['id'] = id
-    my_posts[index] = post_dict
-    return {'data': post_dict}
+    
+    return {'data': updated_post}
 
-
-def hello():
-    print("tesitng git push")
