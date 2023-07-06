@@ -1,15 +1,13 @@
 from fastapi import FastAPI, Response, HTTPException, Depends
 from fastapi.params import Body
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
 from typing import Optional, List
 from random import randrange
 import psycopg
 from .database import engine, get_db
-from . import models, schemas
+from . import models, schemas, utils
 from sqlalchemy.orm import Session
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(debug=True)
@@ -126,7 +124,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     # hask the password - user.password
 
-    hashed_password = pwd_context.hash(user.password)
+    hashed_password = utils.hash(user.password)
     user.password = hashed_password
 
     new_user = models.User(**user.dict())
@@ -137,3 +135,12 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return new_user
     
+@app.get('/users/{id}', response_model=schemas.UserResponse)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with id: {id} does not exist")
+
+    return user
+
