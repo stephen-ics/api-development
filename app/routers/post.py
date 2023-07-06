@@ -4,9 +4,12 @@ from typing import List
 from .. import models, schemas
 from ..database import get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/posts',
+    tags=['Post']
+)
 
-@router.get('/posts', response_model=List[schemas.PostResponse])
+@router.get('/', response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""
     #    SELECT *
@@ -17,7 +20,7 @@ def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
-@router.post('/posts', status_code=201, response_model=schemas.PostResponse)
+@router.post('/', status_code=201, response_model=schemas.PostResponse)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
     #    INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
@@ -37,7 +40,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)): # Sto
 
     return new_post
 
-@router.get('/posts/{id}', response_model=schemas.PostResponse) 
+@router.get('/{id}', response_model=schemas.PostResponse) 
 def  get_post(id: int, db: Session = Depends(get_db)): # automatically convert to integer if possible
     # cursor.execute("""
     #    SELECT * 
@@ -53,7 +56,7 @@ def  get_post(id: int, db: Session = Depends(get_db)): # automatically convert t
         raise HTTPException(status_code=404, detail=f'post with id: {id} was not found')
     return post
 
-@router.delete('/posts/{id}', status_code=204)
+@router.delete('/{id}', status_code=204)
 def delete_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute("""
     #    DELETE
@@ -76,7 +79,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     
     return Response(status_code=204)
 
-@router.put('/posts/{id}', response_model=schemas.PostResponse)
+@router.put('/{id}', response_model=schemas.PostResponse)
 def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends(get_db)):
     # cursor.execute("""
     #    UPDATE posts
