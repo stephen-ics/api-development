@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Response, HTTPException, Depends
 from fastapi.params import Body
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from passlib.context import CryptContext
 from typing import Optional, List
 from random import randrange
 import psycopg
@@ -8,6 +9,7 @@ from .database import engine, get_db
 from . import models, schemas
 from sqlalchemy.orm import Session
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(debug=True)
@@ -119,3 +121,19 @@ def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends
     
     return post_query.first()
 
+@app.post('/users', status_code=201, response_model=schemas.UserResponse)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+    # hask the password - user.password
+
+    hashed_password = pwd_context.hash(user.password)
+    user.password = hashed_password
+
+    new_user = models.User(**user.dict())
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
+    
