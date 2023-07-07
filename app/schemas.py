@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from pydantic.types import conint
 from datetime import datetime
 from typing import Optional
 
@@ -13,7 +14,7 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True
-        
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -45,3 +46,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str]
+
+class Vote(BaseModel):
+    post_id: int
+    vote_dir: conint(le=1, ge=0) # less than or equal 1, greater than or equal to 0 (constrained to 0 and 1)
