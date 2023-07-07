@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, HTTPException, Depends, APIRouter
+from fastapi import FastAPI, Response, HTTPException, Depends, APIRouter, status
 from sqlalchemy.orm import Session
 from typing import List
 from .. import models, schemas, oauth2
@@ -33,7 +33,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
     print(current_user.email)
     
     new_post = models.Post(
-        **post.dict()
+        **post.dict(), user_id = current_user.id,
     )
 
     db.add(new_post)
@@ -70,13 +70,17 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depe
     # deleted_post = cursor.fetchone()
     # conn.commit()
 
-    post = db.query(models.Post).filter(models.Post.id == id)
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post = post_query.first()
 
-    if post.first() is None:
+    if post is None:
         raise HTTPException(status_code=404, 
                             detail=f"post with id: {id} does not exist")
 
-    post.delete(synchronize_session=False)
+    if post.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorized to perform requested action")
+
+    post_query.delete(synchronize_session=False)
     db.commit()
     
     return Response(status_code=204)
@@ -94,12 +98,14 @@ def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends
     # conn.commit()
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
-
     post = post_query.first()
 
     if post is None:
         raise HTTPException(status_code=404,
                             detail=f'post with id: {id} does not exist')
+    
+    if post.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorized to perform requested action")
     
     post_query.update(updated_post.dict(), synchronize_session=False)
     db.commit()

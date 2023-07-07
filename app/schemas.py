@@ -6,7 +6,7 @@ class PostBase(BaseModel):
     title: str
     content: str
     published: bool = True #default value
-
+    
 class PostCreate(PostBase):
     pass
 
@@ -16,6 +16,8 @@ class PostUpdate(PostBase):
 class PostResponse(PostBase):
     id: int
     created_at: datetime
+    user_id: int
+
 
     class Config:
         orm_mode = True
