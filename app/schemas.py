@@ -31,14 +31,21 @@ class PostCreate(PostBase):
 class PostUpdate(PostBase):
     published: bool
 
-class PostResponse(PostBase):
+class PostResponseBase(PostBase):
     id: int
     created_at: datetime
     user_id: int
 
+    class Config:
+        orm_mode = True
+
+class PostResponse(BaseModel):
+    Post: PostResponseBase
+    votes: int
 
     class Config:
         orm_mode = True
+
 
 class Token(BaseModel):
     access_token: str
