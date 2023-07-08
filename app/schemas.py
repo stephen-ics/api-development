@@ -23,7 +23,6 @@ class PostBase(BaseModel):
     title: str
     content: str
     published: bool = True #default value
-    user: UserResponse
     
 class PostCreate(PostBase):
     pass
@@ -35,6 +34,7 @@ class PostResponseBase(PostBase):
     id: int
     created_at: datetime
     user_id: int
+    user: UserResponse
 
     class Config:
         orm_mode = True

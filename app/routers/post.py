@@ -26,7 +26,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     
     return posts
 
-@router.post('/', status_code=201, response_model=schemas.PostResponse)
+@router.post('/', status_code=201, response_model=schemas.PostResponseBase)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
     #    INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
@@ -36,10 +36,8 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
     # new_post = cursor.fetchone()
     # conn.commit()'
 
-    print(current_user.email)
-    
     new_post = models.Post(
-        **post.dict(), user_id = current_user.id,
+        user_id = current_user.id, **post.dict()
     )
 
     db.add(new_post)
@@ -95,7 +93,7 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depe
     
     return Response(status_code=204)
 
-@router.put('/{id}', response_model=schemas.PostResponse)
+@router.put('/{id}', response_model=schemas.PostResponseBase)
 def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""
     #    UPDATE posts
