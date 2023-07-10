@@ -1,0 +1,14 @@
+[Unit]
+Description=api-development application
+After=network.target
+
+[Service]
+User=turtle
+Group=turtle
+WorkingDirectory=/home/turtle/app/src
+Environment="PATH=/home/turtle/app/venv/bin"
+EnvironmentFile=/home/turtle/.env
+ExecStart=/home/turtle/app/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+[Install]
+WantedBy=multi-user.target
