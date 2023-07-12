@@ -1,5 +1,4 @@
 from app import schemas
-from fastapi import status
 from jose import jwt
 import pytest
 from app.config import settings
@@ -36,7 +35,7 @@ def test_login_user(test_user, client):
     (None, 'password123', 422),
     ('hellooo@gmail.com', None, 422)
 ])
-def test_incorrect_login(test_user, client, email, password, status_code):
+def test_incorrect_login(client, email, password, status_code):
 
     res = client.post(
         '/login', json={'email': email, 'password': password}
