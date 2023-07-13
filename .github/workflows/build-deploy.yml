@@ -38,6 +38,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
+      - name: check env variables
+        run: echo ${{secrets.DATABASE_NAME}}
       - name: update pip
         run: python -m pip install --upgrade pip
       - name: install all dependencies
