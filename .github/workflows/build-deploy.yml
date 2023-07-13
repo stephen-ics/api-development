@@ -3,7 +3,7 @@ name: Build and Deploy Code
 on: [push, pull_request]
 
 jobs:
-  job1:
+  build:
     environment:
       name: testing
     env:
@@ -19,7 +19,7 @@ jobs:
     services:
       postgres:
         image: postgres
-        env: 
+        env:
           POSTGRES_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
           POSTGRES_DB: ${{secrets.DATABASE_NAME}}_test
         ports:
@@ -29,11 +29,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          
+
     runs-on: ubuntu-latest
     steps:
-      - name: pulling git repo 
-        uses: actions/checkout@v2 
+      - name: pulling git repo
+        uses: actions/checkout@v2
       - name: Install python version 3.9
         uses: actions/setup-python@v2
         with:
@@ -46,4 +46,3 @@ jobs:
         run: |
           pip install pytest
           pytest
-
