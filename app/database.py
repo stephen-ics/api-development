@@ -17,7 +17,7 @@ def get_db():
     try:
         yield db
     finally:
-        db.close()
+        db.close() 
 
 # Connecting db using raw sql instead of sqlalchemy
 # try:
