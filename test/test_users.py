@@ -4,7 +4,7 @@ import pytest
 from app.config import settings
 
 def test_create_user(client):
-    res = client.post('/users/', json={'email': 'hellos1234@gmail.com', 'password': 'password123'})
+    res = client.post('/users/', json={'first_name':'jeff', 'last_name': 'joel', 'email': 'hellos1234@gmail.com', 'password': 'password123'})
 
     new_user = schemas.UserResponse(**res.json())
     assert new_user.email == 'hellos1234@gmail.com'
