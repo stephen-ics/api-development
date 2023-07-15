@@ -5,7 +5,7 @@ from .. import database, schemas, models, utils, oauth2
 
 router = APIRouter(tags=['Authentication'])
 
-@router.post('/login', response_model=schemas.Token)
+@router.post('/login', response_model=schemas.LoginResponse)
 def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.get_db)):
     
     user = db.query(models.User).filter(models.User.email == user_credentials.email).first()
@@ -18,9 +18,8 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
     
     access_token = oauth2.create_access_token(data={'user_id': user.id})
 
-    print('hey', user.first_name)
-
-    return {"access_token": access_token, "token_type": "bearer1", "user_id": user.id, "first_name": user.first_name, "last_name": user.last_name}
+    return {"access_token": access_token, "token_type": "bearer", "user_id": user.id, "first_name": user.first_name, "last_name": user.last_name}
+    # Change bearer 1 back to bearer after test
 
 
 
