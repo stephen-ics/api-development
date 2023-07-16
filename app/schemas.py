@@ -24,6 +24,7 @@ class UserLogin(BaseModel):
 class PostBase(BaseModel):
     title: str
     content: str
+    image: str = None
     published: bool = True #default value
     
 class PostCreate(PostBase):

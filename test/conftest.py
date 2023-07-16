@@ -85,6 +85,7 @@ def test_posts(test_user, test_user2, session):
     posts_data = [{
         "title": "first title",
         "content": "first content",
+        "image": "askdjasdjaslkdjlaskdlkjasdjlaskd",
         "user_id": test_user['id']
     }, {
         "title": "2nd title",

@@ -1,5 +1,5 @@
 from app.database import Base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, LargeBinary
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
@@ -11,6 +11,7 @@ class Post(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
+    image = Column(String, nullable=True)  
     published = Column(Boolean, nullable=True, server_default='TRUE')
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))  
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
