@@ -66,6 +66,15 @@ def  get_post(id: int, db: Session = Depends(get_db), current_user: int = Depend
         raise HTTPException(status_code=404, detail=f'post with id: {id} was not found')
     return post
 
+@router.get('/profile')
+def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(
+        models.Post.user_id == current_user.id)
+
+    return posts
+
+
 @router.delete('/{id}', status_code=204)
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""
