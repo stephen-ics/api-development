@@ -130,3 +130,4 @@ def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends
     db.commit()
     
     return post_query.first()
+
