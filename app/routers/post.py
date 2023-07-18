@@ -26,6 +26,17 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     
     return posts
 
+@router.get('/profile',  response_model=List[schemas.PostResponse])
+def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    
+    print(current_user.id)
+    
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(
+        models.Post.user_id == current_user.id).all()
+
+    return posts
+
 @router.post('/', status_code=201, response_model=schemas.PostResponseBase)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
@@ -65,15 +76,6 @@ def  get_post(id: int, db: Session = Depends(get_db), current_user: int = Depend
     if post is None:
         raise HTTPException(status_code=404, detail=f'post with id: {id} was not found')
     return post
-
-@router.get('/profile')
-def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
-        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(
-        models.Post.user_id == current_user.id)
-
-    return posts
-
 
 @router.delete('/{id}', status_code=204)
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
