@@ -2,6 +2,7 @@ from fastapi import FastAPI, Response, HTTPException, Depends, APIRouter, status
 from sqlalchemy.orm import Session
 from .. import models, schemas, utils, oauth2
 from ..database import get_db
+from sqlalchemy import func
 
 router = APIRouter(
     prefix='/users',
@@ -23,15 +24,25 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     return new_user
+
+@router.get('/profile-info', response_model=schemas.UserProfileResponse)
+def get_profile_info(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    total_posts = db.query(models.Post).filter(models.Post.user_id == current_user.id)
+
+    total_post_num = total_posts.count()
+
+    post_ids = [post.id for post in total_posts]
+
+    total_votes_num = 0
+
+    for id in post_ids:
+        votes = db.query(models.Vote).filter(models.Vote.post_id == id).count()
+        total_votes_num += votes
+
+    return {'num_posts': total_post_num, 'num_votes': total_votes_num}
     
-@router.get('/{id}', response_model=schemas.UserResponse)
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
 
-    if not user:
-        raise HTTPException(status_code=404, detail=f"User with id: {id} does not exist")
-
-    return user
+# NUM POSTS FIRST
 
 @router.put('/password-reset')
 def reset_user_password(user_credentials: schemas.UserPasswordReset, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -55,4 +66,11 @@ def reset_user_password(user_credentials: schemas.UserPasswordReset, db: Session
 
     return {'message': 'password successfully changed!'}
 
+@router.get('/{id}', response_model=schemas.UserResponse)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
 
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with id: {id} does not exist")
+
+    return user

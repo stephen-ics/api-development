@@ -24,6 +24,10 @@ class UserLogin(BaseModel):
 class UserPasswordReset(BaseModel):
     old_password: str
     new_password: str
+
+class UserProfileResponse(BaseModel):
+    num_posts: int
+    num_votes: int
     
 class PostBase(BaseModel):
     title: str
