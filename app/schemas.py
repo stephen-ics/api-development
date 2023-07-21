@@ -34,6 +34,9 @@ class PostBase(BaseModel):
     content: str
     image: str = None
     published: bool = True #default value
+
+class PostVotesResponse(BaseModel):
+    found_vote: bool
     
 class PostCreate(PostBase):
     pass
