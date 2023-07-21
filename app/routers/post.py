@@ -37,6 +37,18 @@ def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends
 
     return posts
 
+@router.get('/votes/{id}')
+def get_post_votes(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    
+    vote_query = db.query(models.Vote).filter(models.Vote.post_id == id, models.Vote.user_id == current_user.id)
+    found_vote = vote_query.first()
+
+    if found_vote:
+        return True
+    else:
+        return False
+
+
 @router.post('/', status_code=201, response_model=schemas.PostResponseBase)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
