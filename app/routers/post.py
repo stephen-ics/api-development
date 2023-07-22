@@ -21,7 +21,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all() --> The unjoined version
 
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
-        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(models.Post.parent_id == None).filter(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(
         models.Post.title.contains(search)).limit(limit).offset(skip).all()
     
     return posts
