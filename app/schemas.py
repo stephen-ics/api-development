@@ -49,10 +49,10 @@ class PostResponseBase(PostBase):
     created_at: datetime
     user_id: int
     user: UserResponse
+    parent_id: int = None
 
     class Config:
         orm_mode = True
-
 class PostResponse(BaseModel):
     Post: PostResponseBase
     votes: int

@@ -26,3 +26,4 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
 def check_login(current_user: int = Depends(oauth2.get_current_user)):
     return {'message': 'successfully logged in'}
 
+

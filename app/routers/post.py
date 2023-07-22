@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from .. import models, schemas, oauth2
 from ..database import get_db
-from sqlalchemy import func
+from sqlalchemy import func, asc
 
 router = APIRouter(
     prefix='/posts',
@@ -145,3 +145,33 @@ def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends
     
     return post_query.first()
 
+@router.post('/{id}', status_code=201, response_model=schemas.PostResponseBase)
+def create_posts(id: int, post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
+    # cursor.execute("""
+    #    INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
+    #    RETURNING * 
+    # """, (post.title, post.content, post.published)) # %s Represents variable
+    
+    # new_post = cursor.fetchone()
+    # conn.commit()'
+
+    new_post = models.Post(
+        parent_id = id,
+        user_id = current_user.id, 
+        **post.dict()
+    )
+
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+
+    return new_post
+
+@router.get('/threads/{id}', status_code=201, response_model=List[schemas.PostResponse])
+def get_post_threads(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
+    
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(models.Post.parent_id == id).order_by(asc(models.Post.created_at)).filter(
+        models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    
+    return posts
