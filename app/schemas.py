@@ -26,6 +26,8 @@ class UserPasswordReset(BaseModel):
     new_password: str
 
 class UserProfileResponse(BaseModel):
+    biography: str = None
+    profile_photo: str = None
     num_posts: int
     num_votes: int
 

@@ -27,6 +27,15 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.get('/profile-info', response_model=schemas.UserProfileResponse)
 def get_profile_info(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    user_query = db.query(models.User).filter(models.User.id == current_user.id)
+    user = user_query.first()
+
+    if user is None: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id: {current_user.id} does not exist')
+
+    biography = user.biography
+    profile_photo = user.profile_photo
+
     total_posts = db.query(models.Post).filter(models.Post.user_id == current_user.id)
 
     total_post_num = total_posts.count()
@@ -39,7 +48,7 @@ def get_profile_info(db: Session = Depends(get_db), current_user: int = Depends(
         votes = db.query(models.Vote).filter(models.Vote.post_id == id).count()
         total_votes_num += votes
 
-    return {'num_posts': total_post_num, 'num_votes': total_votes_num}
+    return {'biography': biography, 'profile_photo': profile_photo, 'num_posts': total_post_num, 'num_votes': total_votes_num}
     
 
 # NUM POSTS FIRST
@@ -99,5 +108,6 @@ def change_profile_photo(profile_photo: schemas.UserProfilePhoto, db: Session = 
 
     updated_profile_photo = {'profile_photo': profile_photo.new_profile_photo}
     user_query.update(updated_profile_photo, synchronize_session=False)
-
+    db.commit()
+    
     return updated_profile_photo
