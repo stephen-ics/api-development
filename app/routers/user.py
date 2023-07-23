@@ -89,3 +89,15 @@ def change_biography(biography: schemas.UserBiography, db: Session = Depends(get
 
     return updated_biography
 
+@router.put('/profile-photo')
+def change_profile_photo(profile_photo: schemas.UserProfilePhoto, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    user_query = db.query(models.User).filter(models.User.id == current_user.id)
+    user = user_query.first()
+
+    if user is None: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id: {current_user.id} does not exist')
+
+    updated_profile_photo = {'profile_photo': profile_photo.new_profile_photo}
+    user_query.update(updated_profile_photo, synchronize_session=False)
+
+    return updated_profile_photo

@@ -31,6 +31,9 @@ class UserProfileResponse(BaseModel):
 
 class UserBiography(BaseModel):
     new_biography: str
+
+class UserProfilePhoto(BaseModel):
+    new_profile_photo: str
     
 class PostBase(BaseModel):
     title: str
