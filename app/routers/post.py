@@ -88,7 +88,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
     return new_post
 
 @router.get('/{id}', response_model=schemas.PostResponse) 
-def  get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # automatically convert to integer if possible
+def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # automatically convert to integer if possible
     # cursor.execute("""
     #    SELECT * 
     #    FROM posts

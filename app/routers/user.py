@@ -74,3 +74,18 @@ def get_user(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"User with id: {id} does not exist")
 
     return user
+
+@router.put('/biography')
+def change_biography(biography: schemas.UserBiography, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    user_query = db.query(models.User).filter(models.User.id == current_user.id)
+    user = user_query.first()
+
+    if user is None: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id: {current_user.id} does not exist')
+    
+    updated_biography = {'biography': biography.new_biography}
+    user_query.update(updated_biography, synchronize_session=False)
+    db.commit()
+
+    return updated_biography
+

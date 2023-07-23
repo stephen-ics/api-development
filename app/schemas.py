@@ -28,6 +28,9 @@ class UserPasswordReset(BaseModel):
 class UserProfileResponse(BaseModel):
     num_posts: int
     num_votes: int
+
+class UserBiography(BaseModel):
+    new_biography: str
     
 class PostBase(BaseModel):
     title: str
