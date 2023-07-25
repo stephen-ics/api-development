@@ -33,6 +33,7 @@ def get_profile_info(db: Session = Depends(get_db), current_user: int = Depends(
     if user is None: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id: {current_user.id} does not exist')
 
+    first_name = user.first_name
     biography = user.biography
     profile_photo = user.profile_photo
 
@@ -48,7 +49,7 @@ def get_profile_info(db: Session = Depends(get_db), current_user: int = Depends(
         votes = db.query(models.Vote).filter(models.Vote.post_id == id).count()
         total_votes_num += votes
 
-    return {'biography': biography, 'profile_photo': profile_photo, 'num_posts': total_post_num, 'num_votes': total_votes_num}
+    return {'first_name': first_name, 'biography': biography, 'profile_photo': profile_photo, 'num_posts': total_post_num, 'num_votes': total_votes_num}
 
 @router.get('/profile-info/{id}', response_model=schemas.UserProfileResponse)
 def get_profile_info(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
