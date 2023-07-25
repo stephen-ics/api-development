@@ -45,11 +45,18 @@ def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oau
 @router.get('/profile',  response_model=List[schemas.PostResponse])
 def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
-    print(current_user.id)
-    
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
         models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(
         models.Post.user_id == current_user.id).all()
+
+    return posts
+
+@router.get('/profile/{id}',  response_model=List[schemas.PostResponse])
+def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(
+        models.Post.user_id == id).all()
 
     return posts
 
