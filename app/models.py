@@ -25,7 +25,7 @@ class User(Base):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     biography = Column(String, nullable=True)
-    profile_photo = Column(String, nullable=True)
+    profile_photo = Column(String, nullable=True, server_default=text("'https://firebasestorage.googleapis.com/v0/b/connectx-22806.appspot.com/o/images%2FDefaultpfp4.jpeg?alt=media&token=0ec8e6d7-9967-45f7-a8a0-401f4ec50ad4'"))
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()')) 

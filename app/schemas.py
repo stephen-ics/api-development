@@ -12,7 +12,6 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    profile_photo: str = None
     created_at: datetime
 
     class Config:
@@ -27,8 +26,9 @@ class UserPasswordReset(BaseModel):
     new_password: str
 
 class UserProfileResponse(BaseModel):
+    first_name: str
     biography: str = None
-    profile_photo: str = None
+    profile_photo: str 
     num_posts: int
     num_votes: int
 
