@@ -1,16 +1,18 @@
 from fastapi import FastAPI, Response, HTTPException, Depends, APIRouter, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .. import models, schemas, oauth2
+from .. import limiter, models, schemas, oauth2
 from ..database import get_db
 from sqlalchemy import func, asc
+
+from fastapi_limiter.depends import RateLimiter
 
 router = APIRouter(
     prefix='/posts',
     tags=['Post']
 )
 
-@router.get('/', response_model=List[schemas.PostResponse])
+@router.get('/', response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""
     #    SELECT *
@@ -26,7 +28,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     
     return posts
 
-@router.get('/main', response_model=List[schemas.PostResponse])
+@router.get('/main', response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
 def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""
     #    SELECT *
@@ -42,7 +44,7 @@ def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oau
     
     return posts
 
-@router.get('/profile',  response_model=List[schemas.PostResponse])
+@router.get('/profile',  response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
 def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
@@ -51,7 +53,7 @@ def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends
 
     return posts
 
-@router.get('/profile/{id}',  response_model=List[schemas.PostResponse])
+@router.get('/profile/{id}',  response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
 def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
@@ -60,7 +62,7 @@ def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int 
 
     return posts
 
-@router.get('/votes/{id}', response_model=schemas.PostVotesResponse)
+@router.get('/votes/{id}', response_model=schemas.PostVotesResponse, dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
 def get_post_votes(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     vote_query = db.query(models.Vote).filter(models.Vote.post_id == id, models.Vote.user_id == current_user.id)
@@ -74,7 +76,7 @@ def get_post_votes(id: int, db: Session = Depends(get_db), current_user: int = D
     return {'found_vote': found_vote}
 
 
-@router.post('/', status_code=201, response_model=schemas.PostResponseBase)
+@router.post('/', status_code=201, response_model=schemas.PostResponseBase, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
     #    INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
@@ -94,7 +96,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
 
     return new_post
 
-@router.get('/{id}', response_model=schemas.PostResponse) 
+@router.get('/{id}', response_model=schemas.PostResponse, dependencies=[Depends(RateLimiter(times=240, seconds=3600))]) 
 def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # automatically convert to integer if possible
     # cursor.execute("""
     #    SELECT * 
@@ -114,7 +116,7 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends
         raise HTTPException(status_code=404, detail=f'post with id: {id} was not found')
     return post
 
-@router.delete('/{id}', status_code=204)
+@router.delete('/{id}', status_code=204, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""
     #    DELETE
@@ -141,7 +143,7 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depe
     
     return Response(status_code=204)
 
-@router.put('/{id}', response_model=schemas.PostResponseBase)
+@router.put('/{id}', response_model=schemas.PostResponseBase, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
 def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""
     #    UPDATE posts
@@ -168,8 +170,8 @@ def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends
     
     return post_query.first()
 
-@router.post('/{id}', status_code=201, response_model=schemas.PostResponseBase)
-def create_posts(id: int, post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
+@router.post('/{id}', status_code=201, response_model=schemas.PostResponseBase, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
+def create_post_in_thread(id: int, post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
     #    INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
     #    RETURNING * 
@@ -190,7 +192,7 @@ def create_posts(id: int, post: schemas.PostCreate, db: Session = Depends(get_db
 
     return new_post
 
-@router.get('/threads/{id}', status_code=201, response_model=List[schemas.PostResponse])
+@router.get('/threads/{id}', status_code=201, response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
 def get_post_threads(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
