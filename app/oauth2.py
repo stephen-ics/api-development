@@ -1,7 +1,7 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from . import schemas, database, models
-from fastapi import Depends, status, HTTPException
+from fastapi import Depends, status, HTTPException, Header
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .config import settings
@@ -27,7 +27,6 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 def verify_access_token(token: str, credentials_exception):
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
         id: str = payload.get("user_id")

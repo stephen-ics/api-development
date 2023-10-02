@@ -12,7 +12,7 @@ router = APIRouter(
     tags=['Post']
 )
 
-@router.get('/', response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
+@router.get('/', response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""
     #    SELECT *
@@ -28,7 +28,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     
     return posts
 
-@router.get('/main', response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
+@router.get('/main', response_model=List[schemas.PostResponse])
 def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""
     #    SELECT *
@@ -44,7 +44,7 @@ def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oau
     
     return posts
 
-@router.get('/profile',  response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
+@router.get('/profile',  response_model=List[schemas.PostResponse])
 def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
@@ -53,7 +53,7 @@ def get_profile_posts(db: Session = Depends(get_db), current_user: int = Depends
 
     return posts
 
-@router.get('/profile/{id}',  response_model=List[schemas.PostResponse], dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
+@router.get('/profile/{id}',  response_model=List[schemas.PostResponse])
 def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
@@ -62,7 +62,7 @@ def get_profile_posts(id: int, db: Session = Depends(get_db), current_user: int 
 
     return posts
 
-@router.get('/votes/{id}', response_model=schemas.PostVotesResponse, dependencies=[Depends(RateLimiter(times=240, seconds=3600))])
+@router.get('/votes/{id}', response_model=schemas.PostVotesResponse)
 def get_post_votes(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     vote_query = db.query(models.Vote).filter(models.Vote.post_id == id, models.Vote.user_id == current_user.id)
@@ -76,7 +76,7 @@ def get_post_votes(id: int, db: Session = Depends(get_db), current_user: int = D
     return {'found_vote': found_vote}
 
 
-@router.post('/', status_code=201, response_model=schemas.PostResponseBase, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
+@router.post('/', status_code=201, response_model=schemas.PostResponseBase)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # Store all data in body as python dictionary named payLoad
     # cursor.execute("""
     #    INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) 
@@ -96,7 +96,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
 
     return new_post
 
-@router.get('/{id}', response_model=schemas.PostResponse, dependencies=[Depends(RateLimiter(times=240, seconds=3600))]) 
+@router.get('/{id}', response_model=schemas.PostResponse) 
 def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): # automatically convert to integer if possible
     # cursor.execute("""
     #    SELECT * 
@@ -116,7 +116,7 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends
         raise HTTPException(status_code=404, detail=f'post with id: {id} was not found')
     return post
 
-@router.delete('/{id}', status_code=204, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
+@router.delete('/{id}', status_code=204)
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""
     #    DELETE
@@ -143,7 +143,7 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depe
     
     return Response(status_code=204)
 
-@router.put('/{id}', response_model=schemas.PostResponseBase, dependencies=[Depends(RateLimiter(times=60, seconds=3600))])
+@router.put('/{id}', response_model=schemas.PostResponseBase)
 def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""
     #    UPDATE posts
